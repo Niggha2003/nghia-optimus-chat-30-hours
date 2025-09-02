@@ -29,7 +29,7 @@ export class  AdditionFileService {
     return this.http.put(`${this.apiUrl}/${id}`, message);
   }
 
-  delete(id: number): Observable<any> {
+  delete(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }

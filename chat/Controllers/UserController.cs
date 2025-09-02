@@ -4,24 +4,27 @@ using Chat.Models;
 using Chat.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace Chat.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IRoleRepository _roleRepository;
 
-        public UserController(IUserRepository userRepository, IHttpContextAccessor httpContextAccessor)
+        public UserController(IUserRepository userRepository, IHttpContextAccessor httpContextAccessor, IRoleRepository roleRepository)
         {
             _userRepository = userRepository;
             _httpContextAccessor = httpContextAccessor;
+            _roleRepository = roleRepository;
         }
 
         // GET: api/User/CurrentUser
+        [Authorize]
         [HttpGet("CurrentUser")]
         public async Task<ActionResult<UserViewDto>> GetCurrentUser()
         {
@@ -42,6 +45,7 @@ namespace Chat.Controllers
         }
 
         // GET: api/User
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserViewDto>>> GetUsers()
         {
@@ -60,6 +64,7 @@ namespace Chat.Controllers
         }
 
         // GET: api/User/5
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<UserViewDto>> GetUser(int id)
         {
@@ -80,6 +85,19 @@ namespace Chat.Controllers
         {
             var userEntity = _userRepository.MapObject<User>(user);
             userEntity.Password = _userRepository.HashPassword(userEntity.Password);
+            if(user.RoleIds.Count == 0)
+            {
+                var roles = await _roleRepository.GetAllAsync();
+                var roleUser = roles.Where(r => r.RoleCode == "USER").FirstOrDefault();
+                if(roleUser != null)
+                {
+                    user.RoleIds.Add(roleUser.Id);
+                }
+                else
+                {
+                    return StatusCode(500, "Cannot find role user");
+                }
+            }
             await _userRepository.AddAsync(userEntity);
             await _userRepository.SaveAsync();
             await _userRepository.UpdateUserRoles(userEntity.Id, user.RoleIds);
@@ -88,6 +106,7 @@ namespace Chat.Controllers
         }
 
         // PUT: api/User/5
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UserCreateDto user)
         {
@@ -98,6 +117,7 @@ namespace Chat.Controllers
         }
 
         // DELETE: api/User/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -106,6 +126,7 @@ namespace Chat.Controllers
         }
 
         // GET: api/User/Role/{userId}
+        [Authorize]
         [HttpGet("Role/{userId}")]
         public async Task<ActionResult<IEnumerable<RoleViewDto>>> GetUserRoles(int userId)
         {
@@ -119,6 +140,7 @@ namespace Chat.Controllers
         }
 
         // POST: api/User/Role/AddToUser/{userId}
+        [Authorize]
         [HttpPost("Role/AddToUser/{userId}")]
         public async Task<IActionResult> AddRoleToUser(int userId, [FromBody] int roleId)
         {
@@ -133,6 +155,7 @@ namespace Chat.Controllers
         }
 
         // DELETE: api/User/Role/RemoveFromUser/{userId}
+        [Authorize]
         [HttpDelete("Role/RemoveFromUser/{userId}")]
         public async Task<IActionResult> RemoveRoleFromUser(int userId, [FromBody] int roleId)
         {
@@ -147,6 +170,7 @@ namespace Chat.Controllers
         }
 
         // PUT: api/User/Role/UpdateUserRoles/{userId}
+        [Authorize]
         [HttpPut("Role/UpdateUserRoles/{userId}")]
         public async Task<IActionResult> UpdateUserRoles(int userId, [FromBody] List<int> newRoleIds)
         {

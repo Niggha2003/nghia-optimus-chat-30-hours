@@ -1,1 +1,25 @@
-<p>account-view works!</p>
+@if (currentUser) {
+  <div class="account-container">
+    <div class="account-card">
+      <div class="avatar">
+        <img src="https://aic.com.vn/wp-content/uploads/2024/10/avatar-fb-mac-dinh-1.jpg" alt="Avatar" />
+      </div>
+      <div class="info">
+        <h2><strong>Name:</strong> {{ currentUser.userName }}</h2>
+        <p><strong>Email:</strong> {{ currentUser.userEmail }}</p>
+        <p><strong>Role:</strong> {{ currentUser.roleName }}</p>
+      </div>
+    </div>
+  </div>
+}
+@else {
+  <ng-template #loading>
+    <div class="loading">
+      Loading user information...
+    </div>
+  </ng-template>
+}
+
+
+
+

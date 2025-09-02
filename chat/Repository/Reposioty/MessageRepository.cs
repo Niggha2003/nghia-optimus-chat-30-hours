@@ -29,7 +29,8 @@ namespace Chat.Repository.Reposioty
         public async Task<List<Message>> GetMessagesOfAGroupAsync(int groupId)
         {
             var filter = Builders<Message>.Filter.And(
-                Builders<Message>.Filter.Eq(m => m.ToId, groupId)
+                Builders<Message>.Filter.Eq(m => m.ToId, groupId),
+                Builders<Message>.Filter.Eq(m => m.IsGroup, true)
             );
 
             var messages = await _messageCollection
@@ -94,7 +95,8 @@ namespace Chat.Repository.Reposioty
                 .SortBy(m => m.CreatedAt)
                 .ToListAsync();
 
-            var groupedMessages = messages
+            var userMessages = messages
+                .Where(m => !m.IsGroup)
                 .GroupBy(m =>
                 {
                     // gom nhóm cả 2 chiều: A→B == B→A
@@ -130,17 +132,17 @@ namespace Chat.Repository.Reposioty
                         ToName = toName,
                         IsGroup = firstMessage.IsGroup,
                         CreateAt = firstMessage.CreatedAt,
-                        IsViewed = firstMessage.IsViewed
+                        IsViewed = firstMessage.IsViewed,
+                        HasFile = firstMessage.HasFile
                     };
                 });
 
-            var userMessages = groupedMessages.Where(m => !m.IsGroup).ToList();
-            var groupMessages = groupedMessages
+            var groupMessages = messages
                 .Where(m => m.IsGroup)
                 .GroupBy(m => m.ToId)
                 .Select(g =>
                 {
-                    var firstMessage = g.OrderByDescending(m => m.CreateAt).First(); // chỉ order 1 lần
+                    var firstMessage = g.OrderByDescending(m => m.CreatedAt).First(); // chỉ order 1 lần
                     var fromUser = _context.Users.FirstOrDefault(u => u.Id == firstMessage.FromId);
                     string toName;
 
@@ -157,14 +159,16 @@ namespace Chat.Repository.Reposioty
                         // đây là tên của người gửi
                         ToName = toName,
                         IsGroup = firstMessage.IsGroup,
-                        CreateAt = firstMessage.CreateAt,
-                        IsViewed = firstMessage.IsViewed
+                        CreateAt = firstMessage.CreatedAt,
+                        IsViewed = firstMessage.IsViewed,
+                        HasFile = firstMessage.HasFile
                     };
                 }).ToList();
 
             var result = new List<MessageViewDto>();
             result.AddRange(userMessages);
             result.AddRange(groupMessages);
+            result = result.OrderByDescending(r => r.CreateAt).ToList();
 
             foreach (var message in result)
             {

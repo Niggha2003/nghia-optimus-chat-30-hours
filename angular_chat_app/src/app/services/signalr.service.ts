@@ -28,6 +28,14 @@ export class SignalRService {
         .catch(err => console.log('Error while starting connection: ' + err));
     }
 
+    connectedListener(callback: (userId: number) => void) {
+        this.hubConnection.on('UserConnected', callback);
+    }
+
+    disconnectedListener(callback: (userId: number) => void) {
+        this.hubConnection.on('UserDisconnected', callback);
+    }
+
     addMessageListener(callback: (userId: number, message: MessageView) => void) {
         this.hubConnection.on('ReceiveMessage', callback);
     }

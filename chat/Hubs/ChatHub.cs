@@ -109,7 +109,7 @@ namespace Chat.Hubs
         public async Task SendMessageToGroup(int groupId, MessageViewDto message)
         {
             var userId = int.Parse(Context.User?.FindFirst("id")?.Value);
-            var sendGroupUser = _context.GroupSignalRs.Where(g => g.GroupId == groupId).FirstOrDefault();
+            var sendGroupUser = _context.GroupSignalRs.Where(g => g.GroupId == groupId).ToList();
             var userFrom = _context.Users.Where(u => u.Id == message.FromId).FirstOrDefault();
             var groupTo = _context.Groups.Where(u => u.Id == message.ToId).FirstOrDefault();
             message.FromName = userFrom.UserName;
@@ -117,7 +117,14 @@ namespace Chat.Hubs
 
             if(sendGroupUser != null)
             {
-                await Clients.Group(sendGroupUser.GroupGuid).SendAsync("ReceiveMessage", userId, message);
+                foreach (var item in sendGroupUser)
+                {
+                    var user = _context.UserSignalRs.Where(u => u.Id == item.UserId).FirstOrDefault();
+                    if(user != null)
+                    {
+                        await Clients.Client(user.UserConnection).SendAsync("ReceiveMessage", userId, message);
+                    }
+                }
             }
         }
 

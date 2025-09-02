@@ -38,6 +38,7 @@ export interface Message {
   createAt: Date;
   isViewed?: boolean;
   hasFile?: boolean;
+  isActive?: boolean;
 }
 
 export interface MessageView {
@@ -52,6 +53,7 @@ export interface MessageView {
   createAt: Date;
   isViewed?: boolean;
   hasFile?: boolean;
+  isActive?: boolean;
 }
 
 export interface Base64File {
@@ -119,9 +121,20 @@ export class ChatView implements OnInit, AfterViewInit {
   ngOnInit() {
     this.fetchUsers();
     this.signalRService.startConnection();
+    this.signalRService.connectedListener((userId: number) => {
+      var messageIndex = this.totalMessageList.findIndex(m => !m.isGroup && (m.toId == userId || m.fromId == userId) );
+      if(messageIndex !== -1) {
+        this.totalMessageList[messageIndex].isActive = true;
+      }
+    });
+    this.signalRService.disconnectedListener((userId: number) => {
+      var messageIndex = this.totalMessageList.findIndex(m => !m.isGroup && (m.toId == userId || m.fromId == userId));
+      if(messageIndex !== -1) {
+        this.totalMessageList[messageIndex].isActive = false;
+      }
+    });
     this.signalRService.viewedMessageListener((messageId: string) => {
       var messageIndex = this.messageList.findIndex(m => m.id === messageId);
-      
       if(messageIndex !== -1) {
         this.messageList[messageIndex].isViewed = true;
       }
@@ -140,9 +153,9 @@ export class ChatView implements OnInit, AfterViewInit {
         this.totalMessageList[messageSideIndex].createAt = message.createAt;
         this.totalMessageList[messageSideIndex].isViewed = false;
       }
-      if( (message.fromId === (this.userToSendReal ? this.userToSendReal.id : 0) || message.fromId === this.currentUser?.id)) {
+      if( (message.isGroup && this.groupToSend.id === message.toId) || (!message.isGroup && (message.fromId === (this.userToSendReal ? this.userToSendReal.id : 0) || message.fromId === this.currentUser?.id))) {
         message.fromName = messageFromName;
-        console.log("nhận", { ...message })
+        console.log(message.isGroup, this.groupToSend.id, message.toId)
         this.messageList.push({ ...message });
         this.messageList.forEach((message, index) => {
             if (message.hasFile) {
@@ -185,13 +198,7 @@ export class ChatView implements OnInit, AfterViewInit {
 
     this.messageService.create(newMessageData).subscribe({
         next: (data) => {
-          this.uploadFiles(data.id)
-          newMessageData.id = data.id;
-          if(this.isSendingToGroup) {
-            this.signalRService.sendMessageToGroup(this.groupToSend.id, newMessageData);
-          }else{
-            this.signalRService.sendMessage(this.userToSendReal!.id, newMessageData);
-          }
+          this.uploadFiles(data.id, newMessageData);
         },
         error: (err) => {
           console.error('Failed to change role', err);
@@ -279,7 +286,7 @@ export class ChatView implements OnInit, AfterViewInit {
             id: m.id,
             fromId: m.fromId,
             toId: m.toId,
-            fromName: this.currentUser!.userName,
+            fromName: this.userList.find(u => u.id == m.fromId)? this.userList.find(u => u.id == m.fromId)?.userName : this.currentUser?.userName,
             toName: this.isSendingToGroup ? (this.groupToSend ? this.groupToSend.groupName : 'Unknown') : (this.userToSendReal ? this.userToSendReal.userName : 'Unknown'),
             isGroup: m.isGroup,
             content: m.content,
@@ -367,7 +374,7 @@ export class ChatView implements OnInit, AfterViewInit {
           }
       });
     }else{
-      this.groupToSend = { id: 0, groupName: '', users: [] };;
+      this.groupToSend = { id: 0, groupName: '', users: [] };
       this.userToSendReal = this.userList.find(u => u.id === toId) || null;
     }
     this.isSendingToGroup = message.isGroup;
@@ -412,7 +419,7 @@ export class ChatView implements OnInit, AfterViewInit {
   }
 
   onFilesSelected(event: any) {
-    this.files = event.target.files;
+    this.files = Array.from(event.target.files);
 
     this.filesBase64 = []; // reset trước
 
@@ -431,29 +438,59 @@ export class ChatView implements OnInit, AfterViewInit {
     });
   }
 
-  uploadFiles(messageId: string) {
-    if (this.uploadProgress > 0) return;
-    if (this.filesBase64.length === 0) return;
+  uploadFiles(messageId: string, newMessageData: any) {
+    
+    if (this.filesBase64.length === 0) {
+      newMessageData.id = messageId;
+      if(this.isSendingToGroup) {
+        this.signalRService.sendMessageToGroup(this.groupToSend.id, newMessageData);
+      }else{
+        this.signalRService.sendMessage(this.userToSendReal!.id, newMessageData);
+      }
+      return;
+    } 
     let uploadedCount = 0; // số file đã upload
     const totalFiles = this.filesBase64.length;
-
+    let check = false;
     this.filesBase64.forEach(file => {
       file.messageId = messageId;
       this.additionFileService.create({...file}).subscribe({
         next: () => {
           uploadedCount++;
           this.uploadProgress = Math.round((uploadedCount / totalFiles) * 100);
+          check = true;
           if (uploadedCount === totalFiles) {
             alert('Tất cả file đã upload xong!');
             this.uploadProgress = 0;
             this.files = [];
             this.filesBase64 = [];
+            newMessageData.id = messageId;
+            if(this.isSendingToGroup) {
+              this.signalRService.sendMessageToGroup(this.groupToSend.id, newMessageData);
+            }else{
+              this.signalRService.sendMessage(this.userToSendReal!.id, newMessageData);
+            }
           }
         },
         error: () => {
+          alert('File' + file.fileName + 'does not has any content!');
           uploadedCount++;
           this.uploadProgress = Math.round((uploadedCount / totalFiles) * 100);
           console.error('Upload file lỗi:', file.fileName);
+          if (uploadedCount === totalFiles) {
+            this.uploadProgress = 0;
+            this.files = [];
+            this.filesBase64 = [];
+            if(!check) {
+              this.messageService.delete(messageId).subscribe({
+                next: () => {
+                },
+                error: (err) => {
+                  console.error('Failed to delete message', err);
+                  }
+              });;
+            }
+          }
         }
       });
     });

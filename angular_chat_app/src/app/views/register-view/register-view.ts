@@ -50,21 +50,10 @@ export class RegisterView {
   onSubmit() {
     if (this.registerForm.valid) {
       const { email, password, name } = this.registerForm.value;
-      let RoleIds: number[] = [];
-      this.roleService.getAll().subscribe({
-        next: (roles) => {
-          const userRole = roles.find((role: any) => role.roleCode === "USER");
-          RoleIds = userRole ? [userRole.id] : [];
-
-          this.userService.create({ UserName: name, UserEmail: email, Password: password, RoleIds: RoleIds}).subscribe({
-            next: () => {
-              this.router.navigate(['/login']);
-              this.snackBar.open('Đăng ký thành công!', 'Đóng', { duration: 3000 });
-            },
-            error: (err) => {
-              this.errorMessage = err?.error?.message || 'Registration failed';
-            }
-          });
+      this.userService.create({ UserName: name, UserEmail: email, Password: password, RoleIds: []}).subscribe({
+        next: () => {
+          this.router.navigate(['/login']);
+          this.snackBar.open('Đăng ký thành công!', 'Đóng', { duration: 3000 });
         },
         error: (err) => {
           this.errorMessage = err?.error?.message || 'Registration failed';

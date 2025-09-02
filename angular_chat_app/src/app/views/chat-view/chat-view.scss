@@ -13,6 +13,11 @@
         width: 350px;
         border-right: 1px solid #ccc;
 
+        mat-nav-list {
+            height: calc(90vh - 130px);
+            overflow-y: auto;
+        }
+
         mat-list-item {
             margin: 10px 0;
             &:hover {
@@ -71,6 +76,8 @@
                 
                 .chat-list-item-title {
                     font-weight: bold;
+                    display: flex;
+                    justify-content: flex-start;
                 }
 
                 

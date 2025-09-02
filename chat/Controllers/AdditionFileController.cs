@@ -9,6 +9,7 @@ namespace Chat.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AdditionFileController : ControllerBase
     {
         private readonly IAdditionFileRepository _additionFileRepository;

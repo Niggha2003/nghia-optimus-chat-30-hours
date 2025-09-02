@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
+import { AuthLoginGuard } from './guards/authLogin.guard';
 
 export const routes: Routes = [
     {
@@ -10,7 +11,6 @@ export const routes: Routes = [
         path: 'register',
         loadComponent: () => import('./views/register-view/register-view').then(m => m.RegisterView)
     },
-    
     {
         path: 'home',
         loadComponent: () => import('./views/home-view/home-view').then(m => m.HomeView),

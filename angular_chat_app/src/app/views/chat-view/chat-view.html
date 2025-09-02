@@ -14,20 +14,29 @@
         <mat-list-item (click)="message.isGroup? selectChat(message.toId, message) : (!message.isGroup && message.fromId != currentUser?.id? selectChat(message.fromId, message) : selectChat(message.toId, message))">
           <div class="chat-list-item-container">
             <div class="chat-list-item" >
-              <span class="chat-list-item-title">{{ message.fromName }}</span>
+              <span class="chat-list-item-title">{{ message.fromName }} 
+                @if (!message.isGroup) {
+                  @if (message.isActive == null || message.isActive === true) {
+                    <mat-icon style="display: block; margin-left: 10px; color: green;">adjust</mat-icon>
+                  }
+                  @else {
+                    <mat-icon style="display: block; margin-left: 10px; color: red;">adjust</mat-icon>
+                  }
+                }
+              </span>
               @if ((message.isGroup && groupToSend.id == message.toId) || (!message.isGroup && (userToSendReal?.id == message.toId || userToSendReal?.id == message.fromId)))
               {
                 <span>
-                  {{ message.fromId == currentUser?.id? "You:" : "" }} {{ message.content }}
+                  {{ message.fromId == currentUser?.id? "You:" : "" }} {{ !message.content && message.hasFile? "Sent file" : message.content }}
                 </span>
               } @else {
                 @if (!message.isViewed && message.fromId != currentUser?.id) {
                   <strong>
-                    {{ message.fromId == currentUser?.id? "You:" : "" }} {{ message.content }}
+                    {{ message.fromId == currentUser?.id? "You:" : "" }} {{ !message.content && message.hasFile? "Sent file" : message.content }}
                   </strong>
                 } @else {
                   <span>
-                    {{ message.fromId == currentUser?.id? "You:" : "" }} {{ message.content }}
+                    {{ message.fromId == currentUser?.id? "You:" : "" }} {{ !message.content && message.hasFile? "Sent file" : message.content }}
                   </span>
                 }
               }

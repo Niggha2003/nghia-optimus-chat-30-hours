@@ -2,6 +2,7 @@
 using Chat.Dtos.ViewDtos;
 using Chat.Models;
 using Chat.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 
@@ -9,6 +10,7 @@ namespace Chat.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RoleController : ControllerBase
     {
         private readonly IRoleRepository _roleRepository;
