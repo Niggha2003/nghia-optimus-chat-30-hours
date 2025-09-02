@@ -1,0 +1,18 @@
+<div class="login-container">
+    <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()" autocomplete="off">
+        <h2>Login</h2>
+        <mat-form-field appearance="fill" class="form-group">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" required />
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="form-group">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" formControlName="password" required />
+        </mat-form-field>
+        @if (errorMessage) {
+          <div style="color:red;margin-top:10px"> {{ errorMessage }}</div>
+        }
+        <span class="register-link" color="accent" [routerLink]="['/register']">Register new account</span>
+        <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">Login</button>
+    </form>
+</div>

@@ -1,0 +1,42 @@
+<div class="home">
+    <header class="home-header">
+        <nav>
+            <h1 [routerLink]="['']">Chat App</h1>
+        </nav>
+        <div class="home-header-menu">
+            <button matIconButton [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
+                <mat-icon class="home-header-menu-btn">menu</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu" [hasBackdrop]="false">
+                <button mat-menu-item [routerLink]="['permission']">
+                    <mat-icon>lock_open</mat-icon>
+                    <span>Permission management</span>
+                </button>
+                <button mat-menu-item [routerLink]="['role']">
+                    <mat-icon>admin_panel_settings</mat-icon>
+                    <span>Role management</span>
+                </button>
+                <button mat-menu-item [routerLink]="['user']">
+                    <mat-icon>account_circle</mat-icon>
+                    <span>User management</span>
+                </button>
+                <button mat-menu-item [routerLink]="['account']">
+                    <mat-icon>settings</mat-icon>
+                    <span>Account infomation</span>
+                </button>
+                <button mat-menu-item (click)="logout()">
+                    <mat-icon>logout</mat-icon>
+                    <span>Logout</span>
+                </button>
+            </mat-menu>
+        </div>
+    </header>
+
+    <main class="home-body">
+        <router-outlet></router-outlet>
+    </main>
+
+    <footer class="home-footer">
+        <p>&copy; 2025 Chat App Of Nghia. All rights reserved.</p>
+    </footer>
+</div>

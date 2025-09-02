@@ -1,0 +1,16 @@
+.user-dialog-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.user {
+  .user-row {
+    &:hover {
+      color: chocolate;
+      background-color: #cccccc7d;
+      cursor: pointer;
+    }
+  }
+}

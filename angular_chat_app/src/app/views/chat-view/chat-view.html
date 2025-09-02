@@ -1,0 +1,179 @@
+<div class="chat-container">
+  <button class="add-group-btn" mat-raised-button color="primary" (click)="openNewGroupDialog()">
+    Add new group
+  </button>
+  <div class="chat-sidebar">
+    <div class="chat-header">
+        <button matIconButton class="chat-header-new-btn" (click)="openNewChatDialog()" >
+            <mat-icon>new_label</mat-icon>
+            <span>New chat</span>
+        </button>
+    </div>
+    <mat-nav-list class="chat-list">
+      @for (message of totalMessageList; track $index) {
+        <mat-list-item (click)="message.isGroup? selectChat(message.toId, message) : (!message.isGroup && message.fromId != currentUser?.id? selectChat(message.fromId, message) : selectChat(message.toId, message))">
+          <div class="chat-list-item-container">
+            <div class="chat-list-item" >
+              <span class="chat-list-item-title">{{ message.fromName }}</span>
+              @if ((message.isGroup && groupToSend.id == message.toId) || (!message.isGroup && (userToSendReal?.id == message.toId || userToSendReal?.id == message.fromId)))
+              {
+                <span>
+                  {{ message.fromId == currentUser?.id? "You:" : "" }} {{ message.content }}
+                </span>
+              } @else {
+                @if (!message.isViewed && message.fromId != currentUser?.id) {
+                  <strong>
+                    {{ message.fromId == currentUser?.id? "You:" : "" }} {{ message.content }}
+                  </strong>
+                } @else {
+                  <span>
+                    {{ message.fromId == currentUser?.id? "You:" : "" }} {{ message.content }}
+                  </span>
+                }
+              }
+            </div>
+            @if ((message.isGroup && groupToSend.id == message.toId) || (!message.isGroup && (userToSendReal?.id == message.toId || userToSendReal?.id == message.fromId)))
+            {
+              @if (!message.isGroup && (userToSendReal?.id == message.fromId)) {
+                {{ markAsViewed(message) }}
+              }
+              <mat-icon>keyboard_double_arrow_left</mat-icon>
+            } @else {
+              @if (!message.isViewed && message.fromId != currentUser?.id) {
+                <mat-icon>priority_high</mat-icon>
+              }
+            }
+          </div>
+        </mat-list-item>
+        <mat-divider></mat-divider>
+      }
+    </mat-nav-list>
+  </div>
+  @if (!selectedChatName) {
+    <div style="display: flex; flex: 1; color:red;margin-top:10px; justify-content: center; align-items: center;"> Please select a chat to start chat</div>
+  } @else {
+    <div class="chat-main">
+        <div class="chat-header">
+          <h3>{{ selectedChatName }}</h3>
+        </div>
+        <div class="chat-messages" #chatContainer>
+          @for (message of messageList; track $index) {
+            <div class="message" [class.own-message]="message.fromId == currentUser?.id">
+              <strong>{{ message.fromName }}</strong> 
+              @if (message.content) {
+                <span class="message-content">{{ message.content }}</span>
+              }
+              <div class="message-file" #messageFileContainer>
+                  @if (message.hasFile) {
+                    <div class="file-item">
+                    </div>
+                  }
+              </div>
+              @if ($index === messageList.length - 1 && message.isViewed && message.fromId === currentUser?.id) {
+                <span style="width: 100%; text-align: right;">viewed</span>
+              }
+            </div>
+          }
+        </div>
+        <div class="chat-input">
+          <form (ngSubmit)="sendMessage()">
+            <button (click)="fileInput.click()" type="button" mat-icon-button style="margin-right: 10px;">
+              <label style="cursor: pointer;"><mat-icon>add</mat-icon></label>
+            </button>
+            <input #fileInput id="fileInput" type="file" (change)="onFilesSelected($event)" multiple hidden/>
+            <mat-form-field appearance="fill" class="message-input">
+              <input matInput placeholder="Type your message..." [(ngModel)]="newMessage" name="message" required />
+            </mat-form-field>
+            <!-- Emoji picker -->
+            <button type="button" mat-icon-button (click)="toggleEmojiPicker()">
+              <mat-icon>mood</mat-icon>
+            </button>
+            @if (!!showEmojiPicker) {
+              <div class="emoji-wrapper" #emojiWrapper>
+                  <emoji-mart
+                    class="emoji-container"
+                    emoji="point_up" title="Pick your emoji…" set="facebook" (emojiClick)="addEmoji($event)"
+                    [i18n]="{ search: 'Recherche', categories: { search: 'Résultats de recherche', recent: 'Récents' } }"
+                  ></emoji-mart>
+              </div>
+            }
+            <button matIconButton type="submit" [disabled]="!newMessage.trim() && files.length == 0">
+                <mat-icon>send</mat-icon>
+            </button>
+          </form>
+        </div>
+        @if(files.length > 0) {
+          <div class="progress-container" style="padding: 10px">
+            {{files.length}} file{{files.length > 1? "s" : ""}} selected.
+          </div>
+        }
+        @if(uploadProgress > 0) {
+          <div class="progress-container">
+            <p>Tiến trình upload: {{ uploadProgress }}%</p>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+            </div>
+          </div>
+        }
+      </div>
+  }
+</div>
+
+
+<ng-template #dialogNewChatTemplate>
+  <div class="new-chat-dialog-container">
+    <h2 mat-dialog-title>Select user to chat</h2>
+    <form (ngSubmit)="submitNewChatDialog()">
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>User</mat-label>
+        <mat-select [(ngModel)]="userToSendInform" name="user">
+          @for (user of userList; track $index) {
+            <mat-option [value]="user">{{user.userName}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      @if (errorMessage) {
+        <div style="color:red;margin-top:10px"> {{ errorMessage }}</div>
+      }
+      <div style="text-align:right;margin-top:16px;">
+        <button mat-button type="button" (click)="closeDialog()">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="!userToSendInform">Send</button>
+      </div>
+    </form>
+  </div>
+</ng-template>
+
+
+
+<ng-template #dialogNewGroupTemplate>
+  <div class="new-group-dialog-container">
+    <h2 mat-dialog-title>New group</h2>
+    <form (ngSubmit)="submitNewGroupDialog()">
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>Group name</mat-label>
+        <input matInput name="groupName" [(ngModel)]="group.groupName" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>Users</mat-label>
+        <mat-select [(ngModel)]="group.users" name="userInGroupList" multiple>
+          @for (user of userList; track $index) {
+            <mat-option [value]="user">{{user.userName}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      @if (group.users.length <= 1) {
+        <div style="color:red;margin-top:10px">Total member must greater than 2</div>
+      }
+      @if (!group.groupName) {
+        <div style="color:red;margin-top:10px">Must input group name</div>
+      }
+      @if (errorMessage) {
+        <div style="color:red;margin-top:10px"> {{ errorMessage }}</div>
+      }
+      <div style="text-align:right;margin-top:16px;">
+        <button mat-button type="button" (click)="closeDialog()">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="group.users.length <= 1 || !group.groupName">Create</button>
+      </div>
+    </form>
+  </div>
+</ng-template>

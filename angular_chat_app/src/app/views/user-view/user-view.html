@@ -1,0 +1,106 @@
+<div class="user">
+  <button class="add-btn" mat-raised-button color="primary" (click)="openDialog()">
+    Add new user
+  </button>
+  <div class="mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource" matSort>
+      <ng-container matColumnDef="Id">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+        <td mat-cell *matCellDef="let row"> {{row.id}} </td>
+      </ng-container>
+      <ng-container matColumnDef="UserName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> User name </th>
+        <td mat-cell *matCellDef="let row"> {{row.userName}} </td>
+      </ng-container>
+      <ng-container matColumnDef="UserEmail">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
+        <td mat-cell *matCellDef="let row"> {{row.userEmail}} </td>
+      </ng-container>
+      <ng-container matColumnDef="Role">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Role </th>
+        <td mat-cell *matCellDef="let row"> {{row.roleName}} </td>
+      </ng-container>
+      <ng-container matColumnDef="Actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-button color="warn" (click)="$event.stopPropagation(); deleteUser(row.id)">
+            <mat-icon style="color: red; margin: 0;">delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr class="user-row" mat-row *matRowDef="let row; columns: displayedColumns;"  (click)="openRoleControlDialog(row.id, row.userName)"></tr>
+    </table>
+    <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of users"></mat-paginator>
+  </div>
+</div>
+
+<ng-template #dialogTemplate>
+  <div class="user-dialog-container">
+    <h2 mat-dialog-title>Add User</h2>
+    <form [formGroup]="dialogForm" (ngSubmit)="submitDialog()">
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>User Name</mat-label>
+        <input matInput formControlName="userName" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" formControlName="password" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>Confirm Password</mat-label>
+        <input matInput type="password" formControlName="confirmPassword" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>Roles</mat-label>
+        <mat-select formControlName="roles" multiple>
+          @for (role of roleList; track $index) {
+            <mat-option [value]="role.roleId">{{role.roleName}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      @if (dialogForm.errors?.['mismatch']) {
+        <div style="color:red;margin-top:10px">Passwords do not match</div>
+      }
+      @if (errorMessage) {
+        <div style="color:red;margin-top:10px"> {{ errorMessage }}</div>
+      }
+      <div style="text-align:right;margin-top:16px;">
+        <button mat-button type="button" (click)="closeDialog()">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="dialogForm.invalid">Add</button>
+      </div>
+    </form>
+  </div>
+</ng-template>
+
+
+<ng-template #dialogRoleControlTemplate>
+  <div class="user-dialog-container">
+    <h2 mat-dialog-title>Modify role for user</h2>
+    <form [formGroup]="dialogRoleControlForm" (ngSubmit)="submitRoleControlDialog()">
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>User Name</mat-label>
+        <input matInput formControlName="userName" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>Roles</mat-label>
+        <mat-select formControlName="roles" multiple>
+          @for (role of roleList; track $index) {
+            <mat-option [value]="role.roleId">{{role.roleName}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      @if (errorMessage) {
+        <div style="color:red;margin-top:10px"> {{ errorMessage }}</div>
+      }
+      <div style="text-align:right;margin-top:16px;">
+        <button mat-button type="button" (click)="closeDialog()">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="dialogRoleControlForm.invalid">Modify</button>
+      </div>
+    </form>
+  </div>
+</ng-template>

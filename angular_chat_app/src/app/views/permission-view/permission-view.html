@@ -1,0 +1,57 @@
+<div class="permission">
+    <button class="add-btn" matButton="elevated" (click)="openDialog()">
+        Add new permission
+    </button>
+    <div class="mat-elevation-z8">
+        <table mat-table [dataSource]="dataSource" matSort>
+            <ng-container matColumnDef="Id">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+                <td mat-cell *matCellDef="let row"> {{row.id}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="PermissionName">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Permission name </th>
+                <td mat-cell *matCellDef="let row"> {{row.permissionName}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="PermissionCode">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Permission code </th>
+                <td mat-cell *matCellDef="let row"> {{row.permissionCode}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="Actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let element">
+                    <button mat-button color="warn" (click)="deletePermission(element.id)">
+                        <mat-icon style="color: red; margin: 0;">delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of users"></mat-paginator>
+    </div>
+</div>
+
+<ng-template #dialogTemplate>
+  <div class="permission-dialog-container">
+    <h2 mat-dialog-title>Add Permission</h2>
+    <form [formGroup]="dialogForm" (ngSubmit)="submitDialog()">
+        <mat-form-field appearance="fill" style="width:100%">
+            <mat-label>Permission Name</mat-label>
+            <input matInput formControlName="PermissionName" required>
+        </mat-form-field>
+        <mat-form-field appearance="fill" style="width:100%">
+            <mat-label>Permission Code</mat-label>
+            <input matInput formControlName="PermissionCode" required>
+        </mat-form-field>
+        <div style="text-align:right;margin-top:16px;">
+            <button style="margin-right:5px;" mat-button type="button" (click)="closeDialog()">Cancel</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="dialogForm.invalid">Add</button>
+        </div>
+    </form>
+  </div>
+</ng-template>

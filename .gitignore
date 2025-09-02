@@ -1,0 +1,95 @@
+# =========================
+# GLOBAL
+# =========================
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / Editors
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment
+*.env
+.env.*
+
+
+# =========================
+# ANGULAR chat_app
+# =========================
+# Dependencies
+chat_app/node_modules/
+
+# Angular build output
+chat_app/dist/
+chat_app/out-tsc/
+chat_app/.angular/
+chat_app/.angular/cache/
+
+# Cache / Temp
+chat_app/tmp/
+chat_app/.tmp/
+chat_app/coverage/
+
+# Angular test
+chat_app/karma-*.log
+chat_app/testem.log
+chat_app/typings/
+
+
+# =========================
+# .NET chat
+# =========================
+# Build output
+chat/[Bb]in/
+chat/[Oo]bj/
+chat/[Ll]og/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+*.nuspec
+*.psmdcp
+*.dll
+*.exe
+*.pdb
+*.cache
+
+# Publish output
+chat/wwwroot/
+chat/App_Data/
+
+# User secrets
+chat/appsettings.*.json
+chat/Properties/launchSettings.json
+
+# Rider / ReSharper
+*.DotSettings.user
+_ReSharper*/
+*.resharper
+*.sln.iml
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+
+# =========================
+# MISC
+# =========================
+# Coverage
+coverage/
+*.lcov
+
+# Generated files
+*.generated.cs
